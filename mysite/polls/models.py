@@ -1,5 +1,3 @@
-from django.db import models
-
 # Create your models here.
 
 
@@ -30,4 +28,117 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.choice_text
+
+
+# study modules
+# class Person(models.Model):
+#     db_table = '"table_person"'
+#     first_name = models.CharField(max_length=30)
+#     last_name = models.CharField(max_length=30)
+
+
+# Musician, Album
+class Musician(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    instrument = models.CharField(max_length=100)
+
+
+class Album(models.Model):
+    artist = models.ForeignKey(Musician, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    release_date = models.DateField()
+    num_stars = models.IntegerField()
+
+
+# person, group, membership
+class Person(models.Model):
+    name = models.CharField(max_length=128)
+
+    def __str__(self):
+        return self.name
+
+
+class Group(models.Model):
+    name = models.CharField(max_length=128)
+    members = models.ManyToManyField(Person, through='membership')
+
+    def __str__(self):
+        return self.name
+
+
+class Membership(models.Model):
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    date_joined = models.DateField()
+    invite_reason = models.CharField(max_length=64)
+
+
+# one to one field
+# from geography.models import ZipCode
+# class Restaurant(models.Model):
+#     zip_code = models.ForeignKey(
+#         ZipCode,
+#         on_delete=models.SET_NULL,
+#         blank=True,
+#         null=True,
+#     )
+
+
+# Meta options
+class Ox(models.Model):
+    horn_length = models.IntegerField()
+
+    class Meta:
+        ordering = ["horn_length"]
+        verbose_name_plural = "oxen"
+
+
+# abstract base classes
+class CommonInfo(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.PositiveIntegerField()
+
+    class Meta:
+        abstract = True
+        ordering = ['name']
+
+class Student(CommonInfo):
+    home_group = models.CharField(max_length=5)
+
+    class Meta(CommonInfo.Meta):
+        db_table = 'student_info'
+
+
+# related name and related auery name
+# class Base(models.Model):
+#     m2m = models.ManyToManyField(
+#         OtherModel,
+#         related_name="%(app_label)s_%(class)s_related",
+#         related_query_name="%(app_label)s_%(class)ss",
+#     )
+#
+#     class Meta:
+#         abstract = True
+#
+# class ChildA(Base):
+#     pass
+#
+# class ChildB(Base):
+#     pass
+
+
+# proxy models
+# class Person(models.Model):
+#     first_name = models.CharField(max_length=30)
+#     last_name = models.CharField(max_length=30)
+#
+# class MyPerson(Person):
+#     class Meta:
+#         proxy = True
+#
+#     def do_something(self):
+#         # ...
+#         pass
+
 
