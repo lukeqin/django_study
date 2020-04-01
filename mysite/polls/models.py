@@ -172,3 +172,44 @@ class Entry(models.Model):
 
     def __str__(self):
         return self.headline
+
+
+'''
+queries
+
+# 1
+b2 = Blog.objects.get(name="New2")
+
+# 2
+>>> Entry.objects.filter(headline__startswith='Entry').exclude(pub_date__gte=datetime.date.today()).filter(pub_date__gte=datetime.date(2020,
+ 3, 31))
+<QuerySet [<Entry: Entry 1>]>
+>>>
+
+# 3
+>>> Entry.objects.filter(headline__startswith='Entry')[0]
+<Entry: Entry 1>
+>>> Entry.objects.filter(headline__startswith='Entry')[0].pub_date
+datetime.date(2020, 3, 31)
+>>> Entry.objects.filter(headline__startswith='Entry')
+<QuerySet [<Entry: Entry 1>, <Entry: Entry2>, <Entry: Entry3>]>
+>>> Entry.objects.filter(headline__startswith='Entry')[1].pub_date
+datetime.date(2020, 4, 1)
+>>> Entry.objects.filter(headline__startswith='Entry')[2].pub_date
+datetime.date(2020, 3, 30)
+>>>
+
+# 4
+>>> q1 = Entry.objects.filter(headline__startswith="What")
+>>> q2 = q1.exclude(pub_date__gte=datetime.date.today())
+>>> q3 = q1.filter(pub_date__gte=datetime.date.today())
+
+# 5
+Entry.objects.filter(blog_id=1)
+
+# 6 SQL JOINs
+Entry.objects.filter(blog__name='New name')
+
+# 7 
+
+'''
