@@ -210,6 +210,65 @@ Entry.objects.filter(blog_id=1)
 # 6 SQL JOINs
 Entry.objects.filter(blog__name='New name')
 
-# 7 
+# 7  F()
+>>> from django.db.models import F
+>>>
+>>> Entry.objects.filter(number_of_comments__gt=F('number_of_pingbacks'))
+<QuerySet [<Entry: Entry3>]>
+>>>
+
+Entry.objects.filter(rating__lt=F('number_of_comments') + F('number_of_pingbacks'))
+
+# 8 
+>>> from datetime import timedelta
+>>> Entry.objects.filter(mod_date__gt=F('pub_date') + timedelta(days=3))
+<QuerySet []>
+>>>
+
+
+# 9 
+>>> Blog.objects.get(id__exact=3)
+<Blog: New3>
+>>> Blog.objects.get(id=3)
+<Blog: New3>
+>>> Blog.objects.get(pk=3)
+<Blog: New3>
+>>>
+
+
+# 10 
+>>> Blog.objects.filter(pk__in=[1,2,3])
+<QuerySet [<Blog: New name>, <Blog: New2>, <Blog: New3>]>
+>>> Blog.objects.filter(pk__in=[1,2,4])
+<QuerySet [<Blog: New name>, <Blog: New2>]>
+>>>
+
+
+# 11
+>>> Entry.objects.filter(blog__id__exact=1)
+<QuerySet [<Entry: Entry 1>, <Entry: Entry3>]>
+>>> Entry.objects.filter(blog__id=1)
+<QuerySet [<Entry: Entry 1>, <Entry: Entry3>]>
+>>> Entry.objects.filter(blog__pk=1)
+<QuerySet [<Entry: Entry 1>, <Entry: Entry3>]>
+>>>
+
+
+# 12
+print([e.headline for e in Entry.objects.all()])
+print([e.pub_date for e in Entry.objects.all()])
+
+# 13
+>>> queryset = Entry.objects.all()
+>>> print([p.headline for p in queryset])
+['Entry 1', 'Entry2', 'Entry3']
+>>>
+>>>
+>>> print([p.pub_date for p in queryset])
+[datetime.date(2020, 3, 31), datetime.date(2020, 4, 1), datetime.date(2020, 3, 30)]
+>>>
+
+
+# 14b
 
 '''
