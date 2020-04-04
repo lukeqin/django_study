@@ -174,101 +174,58 @@ class Entry(models.Model):
         return self.headline
 
 
-'''
-queries
-
-# 1
-b2 = Blog.objects.get(name="New2")
-
-# 2
->>> Entry.objects.filter(headline__startswith='Entry').exclude(pub_date__gte=datetime.date.today()).filter(pub_date__gte=datetime.date(2020,
- 3, 31))
-<QuerySet [<Entry: Entry 1>]>
->>>
-
-# 3
->>> Entry.objects.filter(headline__startswith='Entry')[0]
-<Entry: Entry 1>
->>> Entry.objects.filter(headline__startswith='Entry')[0].pub_date
-datetime.date(2020, 3, 31)
->>> Entry.objects.filter(headline__startswith='Entry')
-<QuerySet [<Entry: Entry 1>, <Entry: Entry2>, <Entry: Entry3>]>
->>> Entry.objects.filter(headline__startswith='Entry')[1].pub_date
-datetime.date(2020, 4, 1)
->>> Entry.objects.filter(headline__startswith='Entry')[2].pub_date
-datetime.date(2020, 3, 30)
->>>
-
-# 4
->>> q1 = Entry.objects.filter(headline__startswith="What")
->>> q2 = q1.exclude(pub_date__gte=datetime.date.today())
->>> q3 = q1.filter(pub_date__gte=datetime.date.today())
-
-# 5
-Entry.objects.filter(blog_id=1)
-
-# 6 SQL JOINs
-Entry.objects.filter(blog__name='New name')
-
-# 7  F()
->>> from django.db.models import F
->>>
->>> Entry.objects.filter(number_of_comments__gt=F('number_of_pingbacks'))
-<QuerySet [<Entry: Entry3>]>
->>>
-
-Entry.objects.filter(rating__lt=F('number_of_comments') + F('number_of_pingbacks'))
-
-# 8 
->>> from datetime import timedelta
->>> Entry.objects.filter(mod_date__gt=F('pub_date') + timedelta(days=3))
-<QuerySet []>
->>>
+class Authora(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.IntegerField()
 
 
-# 9 
->>> Blog.objects.get(id__exact=3)
-<Blog: New3>
->>> Blog.objects.get(id=3)
-<Blog: New3>
->>> Blog.objects.get(pk=3)
-<Blog: New3>
->>>
+class Publisher(models.Model):
+    name = models.CharField(max_length=300)
 
 
-# 10 
->>> Blog.objects.filter(pk__in=[1,2,3])
-<QuerySet [<Blog: New name>, <Blog: New2>, <Blog: New3>]>
->>> Blog.objects.filter(pk__in=[1,2,4])
-<QuerySet [<Blog: New name>, <Blog: New2>]>
->>>
+class Book(models.Model):
+    name = models.CharField(max_length=300)
+    pages = models.IntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    rating = models.FloatField()
+    authors = models.ManyToManyField(Authora)
+    pulisher = models.ForeignKey(Publisher, on_delete=models.CASCADE)
+    pudate = models.DateField()
 
 
-# 11
->>> Entry.objects.filter(blog__id__exact=1)
-<QuerySet [<Entry: Entry 1>, <Entry: Entry3>]>
->>> Entry.objects.filter(blog__id=1)
-<QuerySet [<Entry: Entry 1>, <Entry: Entry3>]>
->>> Entry.objects.filter(blog__pk=1)
-<QuerySet [<Entry: Entry 1>, <Entry: Entry3>]>
->>>
+class Store(models.Model):
+    name = models.CharField(max_length=300)
+    books = models.ManyToManyField(Book)
 
 
-# 12
-print([e.headline for e in Entry.objects.all()])
-print([e.pub_date for e in Entry.objects.all()])
+# adding extra manager methods
+class PollManager(models.Manager):
+    def with_counts(self):
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                SELECT p.id, p.question, p.poll_date, COUNT(*)
+                FROM polls_opinionpoll p, polls_response r
+                WHERE p.id = r.poll_id
+                GROUP BY p.id, p.question, p.poll_date
+                ORDER BY p.poll_date DESC''')
+            result_list = []
+            for row in cursor.fetchall():
+                p = self.model(id=row[0], question=row[1], poll_date=row[2])
+                p.num_responses = row[3]
+                result_list.append(p)
+        return result_list
 
-# 13
->>> queryset = Entry.objects.all()
->>> print([p.headline for p in queryset])
-['Entry 1', 'Entry2', 'Entry3']
->>>
->>>
->>> print([p.pub_date for p in queryset])
-[datetime.date(2020, 3, 31), datetime.date(2020, 4, 1), datetime.date(2020, 3, 30)]
->>>
+
+class OpnionPoll(models.Model):
+    question = models.CharField(max_length=200)
+    poll_date = models.DateField()
+    objects = PollManager()
 
 
-# 14b
+class Response(models.Model):
+    poll = models.ForeignKey(OpnionPoll, on_delete=models.CASCADE)
+    person_mame = models.CharField(max_length=50)
+    response = models.TextField()
 
-'''
+
