@@ -229,3 +229,5 @@ class Response(models.Model):
     response = models.TextField()
 
 
+class Poll(models.Model):
+    name = models.CharField(max_length=50)
