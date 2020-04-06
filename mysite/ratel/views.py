@@ -2,13 +2,15 @@ from django.shortcuts import render
 
 # Create your views here.
 
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 import datetime
 from django.http import Http404
 from django.shortcuts import render
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_http_methods
 
 from polls.models import Poll
+from .forms import UploadFileForm
 
 
 def index(request):
@@ -42,3 +44,25 @@ def permission_denied_view(request):
 
 # def permission_denied_view(request, exception=None):
 #     raise HttpResponse('Error handler content', status=403)
+
+# decorators
+@require_http_methods(["GET", "POST"])
+def test_decorator_view(request):
+    # That only GET or POST requests
+    pass
+
+# Imaginary function to handle an upload file.
+def handle_upload_file(f):
+    with open('name.txt', 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+def upload_file(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_upload_file(request.FILES['file'])
+            return HttpResponseRedirect('/success/url/')
+    else:
+        form = UploadFileForm()
+    return render(request, 'upload.html', {'form': form})
